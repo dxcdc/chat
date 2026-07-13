@@ -1,0 +1,25 @@
+# Configurações locais
+.env
+.env.*
+!.env.example
+
+# Cofres de chaves e segredos
+*.pem
+*.key
+*.p12
+*.pfx
+.gpg_passphrase
+
+# Diretórios de dados persistentes do Docker
+data/
+
+# Diretórios locais de backup e dumps
+backups/
+dumps/
+secrets/
+credentials/
+
+# Sistema e logs locais
+*.log
+.DS_Store
+Thumbs.db
