@@ -1,0 +1,57 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16.4-alpine
+    container_name: chat-db
+    restart: always
+    environment:
+      POSTGRES_USER: mmuser
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: mattermost
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mmuser -d mattermost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - chat-net
+
+  mattermost:
+    image: mattermost/mattermost-team-edition:9.11
+    container_name: chat-app
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Configuração do Banco
+      MM_SQLSETTINGS_DRIVERNAME: postgres
+      MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:${DB_PASS}@db:5432/mattermost?sslmode=disable&connect_timeout=10
+      # Configurações Gerais
+      MM_SERVICESETTINGS_SITEURL: ${APP_URL}
+      MM_SERVICESETTINGS_LISTENADDRESS: :8065
+      # Integração de E-mail
+      MM_EMAILSETTINGS_ENABLESMTPCONNECTION: "true"
+      MM_EMAILSETTINGS_SMTPSERVER: ${SMTP_HOST}
+      MM_EMAILSETTINGS_SMTPPORT: ${SMTP_PORT}
+      MM_EMAILSETTINGS_SMTPUSERNAME: ${SMTP_USER}
+      MM_EMAILSETTINGS_SMTPPASSWORD: ${SMTP_PASSWORD}
+      MM_EMAILSETTINGS_CONNECTIONSECURITY: ${SMTP_ENCRYPTION}
+      MM_EMAILSETTINGS_FEEDBACKNAME: ${SMTP_FROM_NAME}
+      MM_EMAILSETTINGS_FEEDBACKEMAIL: ${SMTP_FROM_ADDRESS}
+    ports:
+      - "8065:8065"
+    volumes:
+      - ./data/config:/mattermost/config
+      - ./data/data:/mattermost/data
+      - ./data/logs:/mattermost/logs
+      - ./data/plugins:/mattermost/plugins
+    networks:
+      - chat-net
+
+networks:
+  chat-net:
+    driver: bridge
