@@ -47,6 +47,7 @@ A documentação deste repositório está centralizada no diretório `docs/` com
 | [troubleshooting.md](file:///home/vier/Documentos/Code/CDC/chat/docs/troubleshooting.md) | Guia de diagnóstico rápido para erros comuns de banco, rede, e-mail e layout. |
 | [politica_backup.md](file:///home/vier/Documentos/Code/CDC/chat/docs/politica_backup.md) | Política de backup (3-2-1), criptografia, script automatizado e restore. |
 | [prompt_ia.md](file:///home/vier/Documentos/Code/CDC/chat/docs/prompt_ia.md) | Contexto e prompts pré-configurados para acelerar interações com LLMs/IAs. |
+| [guia_plugins.md](file:///home/vier/Documentos/Code/CDC/chat/docs/guia_plugins.md) | Guia de plugins recomendados e instalados, contendo justificativas e exemplos práticos. |
 
 ---
 
