@@ -1,95 +1,114 @@
-# Prompt de Contexto e Regras para Inteligência Artificial (CDC Chat)
+# Contexto de Inteligência Artificial e Governança (CDC Chat)
 
-Este arquivo fornece o contexto técnico unificado e regras de comportamento para assistentes de inteligência artificial que atuam no repositório CDC Chat. O objetivo é evitar repetição de explicações contextuais e garantir conformidade rígida com os padrões operacionais da CDC.
-
----
-
-## System Context (Contexto Técnico do Projeto)
-
-- **Projeto:** CDC Chat
-- **Objetivo:** Canal corporativo de comunicação interna dos colaboradores e voluntários da ONG, baseado no Mattermost.
-- **Tecnologias principais:** Go/React (Mattermost Team Edition 9.11), PostgreSQL (16.4-alpine), Docker, Docker Compose, Nginx (Proxy externo), Bash (Scripts de backup).
-- **Estrutura de Diretórios relevante:**
-  - `/` : Arquivos de infraestrutura Docker, `.env.example`, `.gitignore`.
-  - `/docs/` : Documentação técnica padronizada.
-  - `/data/` : Volume persistente local reservado para arquivos físicos do PostgreSQL e Mattermost (ignorado pelo Git).
-- **Ambientes:** 
-  - Desenvolvimento (local): `http://localhost:8065`
-  - Produção: `https://chat.<DOMINIO_DO_PROJETO>`
-- **Comunicação interna:** Envio de alertas de status de backups automatizados e janelas de manutenção para o próprio Mattermost.
+Este documento estabelece o contexto técnico unificado, a arquitetura de coexistência entre plataformas de IA e as regras de comportamento para assistentes de inteligência artificial no repositório CDC Chat.
 
 ---
 
-## Restrições Obrigatórias
+## 🏗️ Arquitetura Geral de Inteligência Artificial da CDC
 
-- **Sem `:latest`:** Nunca utilize a tag `:latest` em imagens oficiais no `docker-compose.yml`. Todas as imagens devem ser pinadas em versões estáveis (`postgres:16.4-alpine`, `mattermost/mattermost-team-edition:9.11`).
-- **Segurança Máxima:** Jamais expor senhas reais, tokens de API ou URLs de webhooks reais do Mattermost em códigos, scripts, README ou documentos.
-- **Independência de Alertas:** Falhas no envio de notificações de webhook para o Mattermost não devem paralisar processos essenciais (como scripts de backup ou deploy). O fluxo principal de processamento deve prosseguir e registrar os erros de notificação localmente em log.
-- **Portas e Redes:** O PostgreSQL não publica portas no host para garantir isolamento e segurança lógica, comunicando-se unicamente via rede interna.
-- **Preservação de Dados:** Nunca proponha comandos destrutivos de volumes (`docker compose down -v`) sem emitir avisos claros sobre perda de dados e fornecer opções de backup prévio.
+A organização adota uma abordagem híbrida e bem delimitada para evitar sobreposição de responsabilidades entre as plataformas de IA:
+
+```text
+                       ┌─────────────────────────┐
+                       │       Mattermost        │
+                       │ canais, usuários, chats │
+                       └───────────┬─────────────┘
+                                   │
+                 ┌─────────────────┴─────────────────┐
+                 │                                   │
+                 ▼                                   ▼
+    ┌────────────────────────┐          ┌────────────────────────┐
+    │   Mattermost Agents    │          │          Dify          │
+    │                        │          │                        │
+    │ Resume canais          │          │ Consulta Wiki Markdown │
+    │ Resume threads         │          │ Executa RAG            │
+    │ Transcreve reuniões    │          │ Aplica fluxos          │
+    │ Pesquisa conversas     │          │ Controla prompts       │
+    │ Respeita permissões    │          │ Controla modelos       │
+    └────────────────────────┘          └───────────┬────────────┘
+                                                   │
+                                                   ▼
+                                         ┌──────────────────┐
+                                         │ Gemini ou outro  │
+                                         │ provedor de LLM  │
+                                         └──────────────────┘
+```
+
+### Divisão Clara de Responsabilidades
+
+| Dimensão | Dify (Cérebro Central Institucional) | Mattermost Agents (Interface Nativa do Chat) |
+| :--- | :--- | :--- |
+| **Papel Principal** | Orquestrador central de conhecimento, RAG e fluxos. | Camada nativa de interação e ferramentas contextuais do chat. |
+| **Base de Conhecimento** | Documentos institucionais, Wiki Markdown, PDFs, APIs. | Mensagens, canais, threads e arquivos anexos do Mattermost. |
+| **Histórico e Memória** | Variáveis de sessão do Chatflow, RAG e memória persistente. | Contexto da thread ativa e histórico do canal sob demanda. |
+| **Modelos & Credenciais** | Centralizados (Gemini, OpenAI, Anthropic, Ollama/Local). | Consome serviços expostos ou encaminha via MCP/API. |
+| **Segurança e Regras** | Prompts institucionais rígidos, reranqueamento e guardrails. | Permissões nativas de acesso a canais e equipes do Mattermost. |
 
 ---
 
-## Regras para Respostas da IA
+## ⚖️ Prevenção de Conflitos Arquiteturais
 
-1. **Investigar antes de Codificar:** Sempre leia a estrutura dos arquivos existentes utilizando ferramentas de leitura antes de propor alterações.
-2. **Código Completo e Executável:** Entregar trechos de códigos inteiros, prontos para copiar e colar. Não utilize reticências (`...`) para ocultar lógica ou sugerir que a equipe "continue igual".
-3. **Uso Estrito de Placeholders:** Utilize apenas a lista de placeholders padrão (`<DB_PASSWORD>`, `<MATTERMOST_WEBHOOK_URL>`) em exemplos de configurações.
-4. **Impacto Documental:** Sempre que sugerir modificações de infraestrutura, lembre o usuário de atualizar os respectivos arquivos em `docs/` e o `.env.example` se variáveis de ambiente novas forem criadas.
+Para garantir a coerência dos dados e evitar custos duplicados ou respostas divergentes, a arquitetura obedece às seguintes diretrizes estritas:
+
+1. **Fonte Única de Verdade (Single Source of Truth):**
+   * A documentação oficial (Wiki Markdown, processos do ONGSYS e políticas) é indexada **exclusivamente no Dify**.
+   * O Mattermost Agents **não** duplica a indexação da Wiki, atuando apenas na pesquisa semântica do histórico de conversas dos canais.
+2. **Gestão Única de Credenciais e Consumo:**
+   * O Dify centraliza as chaves de API dos provedores de LLM (como Gemini), limites de concorrência e logs de execução.
+3. **Identidade e Nomes de Bots Claros nos Canais:**
+   * `@cdc-conhecimento`: Bot conectado ao Dify para responder sobre documentações, regras da ONG e ONGSYS.
+   * `@assistente-mattermost`: Bot do Mattermost Agents para resumir threads, extrair tarefas e resumir canais.
+   * `@suporte-ti`: Agente para execução de rotinas e scripts autorizados.
+4. **Ponte de Integração via MCP (Model Context Protocol):**
+   * Quando o Mattermost Agents precisar responder sobre conhecimento institucional, ele **não** consulta um banco duplicado: ele chama a aplicação do Dify através do protocolo **MCP**.
 
 ---
 
-## Prompts Rápidos (Receitas Reutilizáveis)
+## 🚀 Roteiro de Adopção em Etapas
 
-Abaixo estão instruções estruturadas para guiar a IA na realização de tarefas operacionais recorrentes:
+*   **Etapa 1 — Conexão Direta (Em Operação):**  
+    `Mattermost ──> Webhook/Bot ──> Dify (RAG da Wiki) ──> Provedor LLM (Gemini)`  
+    Atende perguntas institucionais com o Dify como centro de controle.
+*   **Etapa 2 — Ativação de Recursos Nativos no Mattermost:**  
+    Instalação do *Mattermost Agents* em ambiente de homologação focado estritamente em: resumo de threads, resumo de canais, extração de tarefas e transcrição de reuniões.
+*   **Etapa 3 — Integração Avançada via MCP:**  
+    Publicação da aplicação do Dify como servidor MCP e integração com o *Mattermost Agents*, oferecendo a experiência de chat nativa conectada ao conhecimento central do Dify.
 
 ---
+
+## 🔒 Restrições Obrigatórias para Assistentes de IA
+
+- **Sem `:latest` em Imagens:** Nunca utilize a tag `:latest` em imagens de contêineres (`postgres:16.4-alpine`, `mattermost/mattermost-team-edition:9.11`).
+- **Segurança e Sanitização:** Jamais expor senhas reais, tokens de API ou URLs de webhooks reais do Mattermost em códigos, scripts, README ou documentos.
+- **Resiliência a Falhas:** Erros no envio de notificações ou webhooks de IA **nunca** devem paralisar rotinas críticas de infraestrutura ou scripts de backup.
+- **Isolamento de Banco:** O PostgreSQL opera unicamente em rede privada interna (`chat-net`), sem portas expostas diretamente no host.
+
+---
+
+## 🛠️ Prompts Rápidos Operacionais (Receitas Reutilizáveis)
 
 ### Receita 1: Diagnóstico de Erro em Contêiner
-- **Contexto:** Um contêiner está falhando ao subir ou apresentando comportamento instável (como loop de reinicialização).
-- **Objetivo:** Identificar o gargalo ou erro de sintaxe/configuração.
-- **Restrições:** Propor comandos não destrutivos e com leitura de logs em tempo real.
-- **Saída Esperada:** Lista de comandos Docker CLI ordenados por prioridade e possíveis causas comuns.
-- **Documentos a Revisar:** `docs/troubleshooting.md`.
+- **Contexto:** Um contêiner está falhando ao subir ou apresentando loop de reinicialização.
+- **Objetivo:** Identificar a causa raiz sem alterar dados.
+- **Comandos:** `docker compose ps` e `docker compose logs --tail=100 chat`.
+- **Documentos:** [troubleshooting.md](file:///home/vier/Documentos/Code/CDC/chat/docs/troubleshooting.md).
 
 ---
 
-### Receita 2: Criar Rotina de Backup Personalizada
-- **Contexto:** Necessidade de adicionar novos caminhos no escopo do backup criptografado do host.
-- **Objetivo:** Modificar o script `backup.sh` de forma segura.
-- **Restrições:** Usar `set -Eeuo pipefail`, tratamento com `trap` e garantir criptografia simétrica com GPG.
-- **Saída Esperada:** Bloco de script Bash modificado e comando de teste.
-- **Documentos a Revisar:** `docs/politica_backup.md`.
+### Receita 2: Execução de Backup Automatizado
+- **Contexto:** Necessidade de rodar o backup diário criptografado com GPG.
+- **Comando:** `./scripts/backup_run.sh` ou `./scripts/backup_run.sh "Chat - Mattermost"`.
+- **Documentos:** [politica_backup.md](file:///home/vier/Documentos/Code/CDC/chat/docs/politica_backup.md).
 
 ---
 
-### Receita 3: Analisar Logs e Higienizar Saída
-- **Contexto:** Logs do banco de dados ou do Mattermost precisam ser anexados a um Postmortem.
-- **Objetivo:** Extrair logs relevantes e sanitizar dados sigilosos.
-- **Restrições:** Utilizar expressões regulares (regex) via `sed` ou comandos rápidos para ocultar senhas, logins ou tokens de webhook.
-- **Saída Esperada:** Comando para filtrar os logs e modelo higienizado resultante.
-- **Documentos a Revisar:** `docs/postmortem.md`.
+### Receita 3: Habilitação de Recursos do Mattermost via CLI
+- **Contexto:** Configurar opções de upload ou mercado de plugins.
+- **Comando:** `docker exec -it <CONTAINER_APP> mmctl config set PluginSettings.EnableUploads true --local`.
+- **Documentos:** [guia_plugins.md](file:///home/vier/Documentos/Code/CDC/chat/docs/guia_plugins.md).
 
 ---
 
-### Receita 4: Testar Integração com Mattermost
-- **Contexto:** Validar se a VPS consegue disparar notificações com sucesso após alterações de rede ou proxy.
-- **Objetivo:** Executar disparo HTTP via `curl` seguro.
-- **Restrições:** Não expor o token no shell do bash. Utilizar variáveis ambientais pré-carregadas.
-- **Saída Esperada:** Comando completo utilizando o placeholder `<MATTERMOST_WEBHOOK_URL>`.
-- **Documentos a Revisar:** `docs/ajuda_infra.md`.
-
----
-
-### Receita 5: Preparação de Janela de Manutenção e Migração
-- **Contexto:** Transferência de servidor VPS agendada.
-- **Objetivo:** Guiar a equipe na execução sequencial e checklists.
-- **Restrições:** Garantir a execução do dump do banco PostgreSQL usando compactação resiliente e checagem de hashes SHA-256.
-- **Saída Esperada:** Cronograma de execução em markdown contendo os comandos executáveis no terminal de origem e destino.
-- **Documentos a Revisar:** `docs/migration_guide.md` e `docs/estrategia_execucao.md`.
-
----
-
-Última revisão: 2026-07-13  
+Última revisão: 2026-07-23  
 Responsável pela revisão: Antigravity  
-Motivo da revisão: Inicialização do arquivo de contexto para uso de Inteligência Artificial no CDC Chat  
+Motivo da revisão: Incorporação da arquitetura de convivência entre Dify e Mattermost Agents  
