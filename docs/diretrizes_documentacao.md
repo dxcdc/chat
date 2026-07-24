@@ -50,6 +50,7 @@ A documentação deste repositório está centralizada no diretório `docs/` com
 | [guia_plugins.md](file:///home/vier/Documentos/Code/CDC/chat/docs/guia_plugins.md) | Guia de plugins recomendados e instalados, contendo justificativas e exemplos práticos. |
 | [desenvolvimento_plugin_calendario.md](file:///home/vier/Documentos/Code/CDC/chat/docs/desenvolvimento_plugin_calendario.md) | Especificação técnica e guia de desenvolvimento do plugin customizado de calendário CDC. |
 | [issues_planejamento.md](file:///home/vier/Documentos/Code/CDC/chat/docs/issues_planejamento.md) | Inventário de GitHub Issues padronizadas para acompanhamento das tarefas do repositório. |
+| [guia_automacao_github.md](file:///home/vier/Documentos/Code/CDC/chat/docs/guia_automacao_github.md) | Guia de automação de GitHub Issues com GitHub Actions e Prompt Universal. |
 
 ---
 
