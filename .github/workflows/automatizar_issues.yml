@@ -1,0 +1,117 @@
+name: Automático - Criar e Atualizar GitHub Issues
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/issues_planejamento.md'
+      - '.github/workflows/automatizar_issues.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  create-issues:
+    name: Sincronizar Issues no GitHub
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar código do repositório
+        uses: actions/checkout@v4
+
+      - name: Criar ou Verificar Issues via GitHub CLI
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          echo "Iniciando automação de sincronização de Issues no GitHub..."
+
+          # Issue 1: Plugin Customizado de Calendário
+          EXISTING_1=$(gh issue list --search "[FEAT] Desenvolvimento do plugin customizado cdc-calendar" --json number -q '.[0].number' || echo "")
+          if [ -z "$EXISTING_1" ]; then
+            gh issue create \
+              --title "[FEAT] Desenvolvimento do plugin customizado cdc-calendar (Go + React)" \
+              --label "enhancement,documentation" \
+              --body "### 📝 Descrição
+          Desenvolver o plugin de calendário customizado para o Mattermost que permita vincular qualquer ID de agenda secundária do Google a canais específicos do chat.
+
+          ### ✅ Critérios de Aceite (Checklist):
+          - [ ] Inicializar o projeto a partir do \`mattermost-plugin-starter-template\`.
+          - [ ] Implementar o comando de barra \`/cdc-cal bind <CALENDAR_ID>\` para vincular agendas a canais.
+          - [ ] Persistir os vínculos no KV Store do Mattermost usando a chave \`channel_subscription_{ChannelID}\`.
+          - [ ] Implementar a autenticação centralizada por conta institucional / Service Account.
+          - [ ] Implementar a rotina de sanitização em Go (remover e-mails de convidados e descrições privadas para LGPD).
+          - [ ] Criar o worker em Go para envio de resumos diários no canal agendado.
+          - [ ] Testar a compilação com \`make dist\` e validar a instalação do pacote \`.tar.gz\`.
+
+          *Documento de Referência:* [desenvolvimento_plugin_calendario.md](docs/desenvolvimento_plugin_calendario.md)"
+            echo "Issue 1 criada com sucesso!"
+          else
+            echo "Issue 1 já existe no GitHub (Issue #$EXISTING_1)."
+          fi
+
+          # Issue 2: Arquitetura Híbrida Dify + Mattermost Agents
+          EXISTING_2=$(gh issue list --search "[ARCH] Implantação da arquitetura híbrida de IA com Dify" --json number -q '.[0].number' || echo "")
+          if [ -z "$EXISTING_2" ]; then
+            gh issue create \
+              --title "[ARCH] Implantação da arquitetura híbrida de IA com Dify e Mattermost Agents" \
+              --label "documentation" \
+              --body "### 📝 Descrição
+          Implantar a infraestrutura de inteligência artificial da CDC dividindo os papéis entre o Dify (orquestrador de conhecimento da Wiki) e o Mattermost Agents (ferramentas nativas do chat).
+
+          ### ✅ Critérios de Aceite (Checklist):
+          - [ ] Garantir que o Dify seja a fonte única de verdade para a base vetorial em Markdown da Wiki.
+          - [ ] Configurar o bot \`@cdc-conhecimento\` via Webhook/API do Dify para responder sobre regras institucionais e ONGSYS.
+          - [ ] Configurar o *Mattermost Agents* em ambiente de homologação focado exclusivamente em: resumo de threads, resumo de canais e extração de tarefas.
+          - [ ] Testar a integração do Dify como servidor MCP (*Model Context Protocol*) conectado ao Mattermost Agents.
+          - [ ] Validar que não há duplicação de chamadas de modelos ou respostas concorrentes nos canais.
+
+          *Documento de Referência:* [prompt_ia.md](docs/prompt_ia.md)"
+            echo "Issue 2 criada com sucesso!"
+          else
+            echo "Issue 2 já existe no GitHub (Issue #$EXISTING_2)."
+          fi
+
+          # Issue 3: Configuração OAuth2 Google Calendar
+          EXISTING_3=$(gh issue list --search "[CONFIG] Finalizar integração OAuth2 e permissões do Google Calendar" --json number -q '.[0].number' || echo "")
+          if [ -z "$EXISTING_3" ]; then
+            gh issue create \
+              --title "[CONFIG] Finalizar integração OAuth2 e permissões do Google Calendar" \
+              --label "documentation" \
+              --body "### 📝 Descrição
+          Finalizar o cadastro das credenciais de cliente OAuth2 no Google Cloud Console e validar o fluxo de autenticação e notificações no Mattermost.
+
+          ### ✅ Critérios de Aceite (Checklist):
+          - [ ] Cadastrar a URI de redirecionamento autorizada: \`https://chat.cdc.org.br/plugins/com.mattermost.gcal/oauth2/complete\`.
+          - [ ] Garantir a ativação da **People API** e da **Google Calendar API** no projeto do Google Cloud.
+          - [ ] Executar \`/gcal connect\` e autenticar com a conta institucional da CDC.
+          - [ ] Testar o comando \`/gcal summary\` e a exibição de compromissos no chat.
+
+          *Documento de Referência:* [guia_plugins.md](docs/guia_plugins.md)"
+            echo "Issue 3 criada com sucesso!"
+          else
+            echo "Issue 3 já existe no GitHub (Issue #$EXISTING_3)."
+          fi
+
+          # Issue 4: Onboarding WelcomeBot e Playbooks
+          EXISTING_4=$(gh issue list --search "[ONBOARDING] Configuração de rotinas automáticas de recepção" --json number -q '.[0].number' || echo "")
+          if [ -z "$EXISTING_4" ]; then
+            gh issue create \
+              --title "[ONBOARDING] Configuração de rotinas automáticas de recepção de voluntários" \
+              --label "documentation" \
+              --body "### 📝 Descrição
+          Configurar a mensagem padrão do WelcomeBot e os checklists do Playbooks para otimizar o onboarding de novos voluntários e colaboradores.
+
+          ### ✅ Critérios de Aceite (Checklist):
+          - [ ] Configurar a mensagem direta de boas-vindas do \`WelcomeBot\` com direcionamento para os canais \`#geral\`, \`#projetos\` e \`#tecnologia\`.
+          - [ ] Ativar o Playbook **\"Entrada de Novo Colaborador\"** com a lista de verificação padrão.
+          - [ ] Ativar o Playbook **\"Resposta a Indisponibilidade de Servidores\"** para a equipe de TI.
+          - [ ] Validar o funcionamento dos checklists em um teste com conta de homologação.
+
+          *Documento de Referência:* [guia_plugins.md](docs/guia_plugins.md)"
+            echo "Issue 4 criada com sucesso!"
+          else
+            echo "Issue 4 já existe no GitHub (Issue #$EXISTING_4)."
+          fi
