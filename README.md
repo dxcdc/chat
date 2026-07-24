@@ -112,6 +112,7 @@ Abaixo estão os links para as guias detalhadas do projeto:
 - [Política de backup](docs/politica_backup.md) — Backup, criptografia, retenção, restauração e alertas no Mattermost.
 - [Contexto para IA](docs/prompt_ia.md) — Contexto arquitetural e prompts operacionais para assistentes de IA.
 - [Guia de plugins](docs/guia_plugins.md) — Guia de plugins instalados e recomendados para a organização.
+- [Plugin de Calendário CDC](docs/desenvolvimento_plugin_calendario.md) — Especificação técnica para desenvolvimento do plugin customizado de calendário.
 
 ---
 
