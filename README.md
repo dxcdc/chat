@@ -113,6 +113,7 @@ Abaixo estão os links para as guias detalhadas do projeto:
 - [Contexto para IA](docs/prompt_ia.md) — Contexto arquitetural e prompts operacionais para assistentes de IA.
 - [Guia de plugins](docs/guia_plugins.md) — Guia de plugins instalados e recomendados para a organização.
 - [Plugin de Calendário CDC](docs/desenvolvimento_plugin_calendario.md) — Especificação técnica para desenvolvimento do plugin customizado de calendário.
+- [Planejamento de Issues](docs/issues_planejamento.md) — Inventário de GitHub Issues estruturadas para acompanhamento das tarefas do repositório.
 
 ---
 

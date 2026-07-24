@@ -49,6 +49,7 @@ A documentação deste repositório está centralizada no diretório `docs/` com
 | [prompt_ia.md](file:///home/vier/Documentos/Code/CDC/chat/docs/prompt_ia.md) | Contexto e prompts pré-configurados para acelerar interações com LLMs/IAs. |
 | [guia_plugins.md](file:///home/vier/Documentos/Code/CDC/chat/docs/guia_plugins.md) | Guia de plugins recomendados e instalados, contendo justificativas e exemplos práticos. |
 | [desenvolvimento_plugin_calendario.md](file:///home/vier/Documentos/Code/CDC/chat/docs/desenvolvimento_plugin_calendario.md) | Especificação técnica e guia de desenvolvimento do plugin customizado de calendário CDC. |
+| [issues_planejamento.md](file:///home/vier/Documentos/Code/CDC/chat/docs/issues_planejamento.md) | Inventário de GitHub Issues padronizadas para acompanhamento das tarefas do repositório. |
 
 ---
 
