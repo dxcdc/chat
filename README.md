@@ -115,6 +115,7 @@ Abaixo estão os links para as guias detalhadas do projeto:
 - [Plugin de Calendário CDC](docs/desenvolvimento_plugin_calendario.md) — Especificação técnica para desenvolvimento do plugin customizado de calendário.
 - [Planejamento de Issues](docs/issues_planejamento.md) — Inventário de GitHub Issues estruturadas para acompanhamento das tarefas do repositório.
 - [Automação de GitHub Issues](docs/guia_automacao_github.md) — Guia de automação de Issues com GitHub Actions e Prompt Universal.
+- [Prompt Mestre de Padronização](docs/prompt_mestre_padronizacao.md) — Prompt mestre para correção e padronização de repositórios CDC.
 
 ---
 
