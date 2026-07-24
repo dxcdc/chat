@@ -1,0 +1,28 @@
+name: Automático - Aprovar e Fundir PRs (Auto-Merge)
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  automerge:
+    name: Aprovação e Fusão Automática de PR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Aprovar e Fundir PR via GitHub CLI
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          echo "Iniciando aprovação automática do PR: $PR_URL"
+          gh pr review "$PR_URL" --approve --body "Aprovado automaticamente pelo CDC Auto-Merge Bot." || true
+          
+          echo "Realizando fusão (Merge) automática..."
+          gh pr merge "$PR_URL" --merge --delete-branch || echo "Aviso: O PR requer verificações adicionais ou aprovação manual antes da fusão final."

@@ -1,58 +1,68 @@
-# Guia de Automação do GitHub e Prompt Universal (CDC)
+# Guia de Automação do GitHub e Prompts Universais (CDC)
 
-Este documento descreve como funciona a automação da criação de **GitHub Issues** via **GitHub Actions** e disponibiliza o **Prompt Universal** para replicar essa mesma automação em qualquer outro repositório da organização CDC (ex: *Wiki*, *BKP Rclone*, *ERP*, *Moodle*, etc.).
-
----
-
-## ⚙️ Como Funciona a Automação no GitHub Actions
-
-A automação fica localizada no arquivo `.github/workflows/automatizar_issues.yml` de cada repositório e funciona da seguinte forma:
-
-```text
-Commit / Push no Git ──> GitHub Actions dispara ──> Lê os arquivos em docs/ ──> Executa 'gh issue create' ──> Issues abertas automaticamente no GitHub Web
-```
-
-### Principais Recursos da Automação:
-1. **Disparo Automático:** Executa sempre que arquivos em `docs/` ou no próprio workflow sofrem alterações.
-2. **Execução Manual (`workflow_dispatch`):** Permite rodar a automação a qualquer momento com um clique na aba **Actions** do GitHub.
-3. **Prevenção de Duplicatas:** O script consulta `gh issue list --search` antes de criar a tarefa, garantindo que não abrirá Issues duplicadas em novos commits.
-4. **Checklists Interativos:** Converte itens `- [ ]` em caixas de seleção clicáveis na aba *Issues* do repositório.
+Este documento descreve como funcionam as automações de **GitHub Issues** e de **Aprovação e Fusão Automática de Pull Requests (Auto-Merge PRs)** via **GitHub Actions**, disponibilizando os **Prompts Universais** para replicar esses fluxos em qualquer repositório da organização CDC.
 
 ---
 
-## 📋 Prompt Universal para Replicar em Outros Repositórios
+## ⚙️ 1. Automações Ativas no Repositório
 
-Ao abrir um chat de desenvolvimento em qualquer outro repositório da CDC (ex: `BKP Rclone` ou `wiki`), copie e cole a instrução abaixo para que a IA configure a automação idêntica para o projeto:
+### 1.1. Automação de Issues (`.github/workflows/automatizar_issues.yml`)
+- **Finalidade:** Lê os arquivos em `docs/` e abre as Issues automaticamente na aba *Issues* do GitHub com títulos, labels e checklists interativos.
+- **Evita Duplicatas:** Verifica se a tarefa já foi criada antes de abrir uma nova.
 
+### 1.2. Automação de Auto-Merge de PRs (`.github/workflows/auto_merge_pr.yml`)
+- **Finalidade:** Sempre que um Pull Request é aberto ou atualizado no repositório, o robô aprova o PR (`gh pr review --approve`) e faz a fusão automática (`gh pr merge --delete-branch`), apagando a branch temporária após a conclusão.
+
+---
+
+## 📋 2. Prompts Universais para Replicar em Outros Repositórios
+
+Ao abrir um chat de desenvolvimento em qualquer outro repositório da CDC (ex: *Wiki*, *BKP Rclone*, *Postal*, *Moodle*, *ERP*, etc.), copie e cole as instruções abaixo:
+
+### Prompt 1: Criar Automação de Issues
 ```markdown
 Por favor, analise a documentação e as tarefas pendentes deste projeto e crie uma automação completa de GitHub Issues via GitHub Actions.
 
 Requisitos da automação:
 1. Crie o arquivo de fluxo `.github/workflows/automatizar_issues.yml` configurado para disparar no `push` da branch `main` e no `workflow_dispatch`.
 2. Configure as permissões do workflow para `issues: write` e `contents: read` utilizando a variável `GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}`.
-3. No script em bash do workflow, utilize a ferramenta GitHub CLI (`gh issue create`) para criar automaticamente no GitHub as Issues principais deste repositório, contendo:
-   - Títulos claros com identificadores (ex: [FEAT], [CONFIG], [ARCH], [BUG], [DOCS]).
-   - Rótulos (labels) adequados ao tipo de tarefa.
-   - Critérios de Aceite organizados em caixas de verificação (checklists `- [ ]`).
-   - Links apontando para os documentos de referência em `docs/`.
-4. Adicione uma verificação prévia usando `gh issue list --search` para evitar que a mesma Issue seja criada repetidamente em novos commits.
-5. Adicione as alterações ao Git, faça o commit e o `git push` para a branch `main` para que o GitHub inicie a criação automática das Issues na aba "Issues" do repositório.
+3. No script em bash do workflow, utilize a ferramenta GitHub CLI (`gh issue create`) para criar automaticamente no GitHub as Issues principais deste repositório com títulos, labels e checklists.
+4. Adicione uma verificação prévia usando `gh issue list --search` para evitar duplicação de Issues.
+5. Adicione as alterações ao Git, faça o commit e o `git push` para a branch `main`.
+```
+
+### Prompt 2: Criar Automação de Auto-Merge de PRs
+```markdown
+Por favor, crie uma automação de aprovação e fusão automática de Pull Requests (Auto-Merge) via GitHub Actions neste repositório.
+
+Requisitos da automação:
+1. Crie o arquivo de fluxo `.github/workflows/auto_merge_pr.yml` configurado para disparar em `pull_request_target` (eventos: `opened`, `synchronize`, `reopened`).
+2. Configure as permissões do workflow para `contents: write` e `pull-requests: write` utilizando `GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}`.
+3. No script em bash, utilize a ferramenta GitHub CLI:
+   - `gh pr review "$PR_URL" --approve` para aprovar o PR automaticamente.
+   - `gh pr merge "$PR_URL" --merge --delete-branch` para fundir o PR e apagar a branch temporária.
+4. Adicione as alterações ao Git, faça o commit e o `git push` para a branch `main`.
 ```
 
 ---
 
-## 🔒 Permissões Necessárias no Repositório
+## 🔒 3. Permissões Globais Necessárias na Organização
 
-Para que o GitHub Actions consiga criar as Issues automaticamente, certifique-se de que a configuração do repositório permite escrita por workflows:
+Para que as automações de Issues e Auto-Merge de PRs funcionem em todos os repositórios da organização:
 
-1. No GitHub, vá em **Settings** ➔ **Actions** ➔ **General**.
-2. Na seção **Workflow permissions**, selecione:  
-   `Read and write permissions`
-3. Marque a caixa **Allow GitHub Actions to create and approve pull requests**.
+### A. Liberar Permissão de Leitura e Escrita Globais:
+1. Acesse: **`https://github.com/organizations/dxcdc/settings/actions`** (ou nas configurações individuais do repositório).
+2. Na seção **Workflow permissions**, selecione: **Read and write permissions**.
+3. Marque a opção: **Allow GitHub Actions to create and approve pull requests**.
 4. Clique em **Save**.
+
+### B. Liberar Auto-Merge nos Repositórios:
+1. Nas configurações do repositório (**Settings ➔ General**), role até a seção **Pull Requests**.
+2. Marque a caixinha: **`Allow auto-merge`**.
+3. Marque a caixinha: **`Automatically delete head branches`**.
 
 ---
 
 Última revisão: 2026-07-24  
 Responsável pela revisão: Antigravity  
-Motivo da revisão: Documentação do padrão de automação de Issues e disponibilização do Prompt Universal  
+Motivo da revisão: Adição do fluxo de Auto-Merge de Pull Requests e disponibilização do Prompt Universal  
